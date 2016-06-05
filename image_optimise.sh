@@ -27,7 +27,7 @@ func_usage () {
 
 Suffix="opt"
 
-BorderColour="'rgb(41,41,41)'"
+BorderColour="'rgb(179,179,179)'"
 
 BorderSize=2
 
@@ -102,7 +102,11 @@ func_optimise_resize () {
 func_main () {
                func_optimise_resize 
 
-               echo "Optimised: $OUTPUT_FILE  -->  $(identify -format "%m %P" "$OUTPUT_FILE")"  
+               printf "Optimised: $OUTPUT_FILE  ===  $(identify -format "%m %P" "$OUTPUT_FILE")  ===  "  
+
+               OldSize=$(du -sh $INPUT_FILE | awk '{print $1}')
+               NewSize=$(du -sh $OUTPUT_FILE | awk '{print $1}')
+               echo " $OldSize  -->  $NewSize "                
              }
 
 func_main
