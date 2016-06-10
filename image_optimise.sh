@@ -7,6 +7,7 @@
 # convert has a bug that makes it ignore the -define jpeg:fancy-upsampling=off
 # For resampling, -thumbnail achieves smaller files than just -resize and it also includes -strip
 # Use -path option to save output to a different directory
+# Also try: convert -strip -interlace Plane -gaussian-blur 0.05 -quality 85% source.jpg result.jpg
 
 #---------------------------------------------------------------------------------
 # Usage
