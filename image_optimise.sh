@@ -15,12 +15,12 @@
 
 func_usage () {
           echo ""
-          echo "Usage:     $(basename $0) -q quality -s size -i inputfile \n"
-          echo "Example:   $(basename $0) -q 20 -s 1024 -i file.jpg \n"
+          echo "Usage:     $(basename $0) -b border_size -q quality -s size -i inputfile \n"
+          echo "Example:   $(basename $0) -b 0 -q 20 -s 1024 -i file.jpg \n"
           exit 3
 }
 
-[[ $# != 6 ]] && func_usage
+[[ $# != 8 ]] && func_usage
 
 #---------------------------------------------------------------------------------
 # Variables
@@ -30,15 +30,14 @@ Suffix="opt"
 
 BorderColour="'rgb(179,179,179)'"
 
-BorderSize=2
-
 #---------------------------------------------------------------------------------
 # Process command-line arguments 
 #---------------------------------------------------------------------------------
 
-while getopts 'i:q:s:' option
+while getopts 'b:i:q:s:' option
 do
    case $option in
+        'b') BORDER_SIZE="$OPTARG" ;;
         'i') INPUT_FILE="$OPTARG" ;;
         's') SIZE="$OPTARG" ;;
         'q') QUALITY_FACTOR="$OPTARG" ;;
@@ -90,8 +89,8 @@ func_optimise_resize () {
                           -define png:exclude-chunk=all \
                           -interlace none \
                           -colorspace sRGB \
-                          -shave 2 \
-                          -bordercolor $(eval echo $BorderColour) -border $BorderSize \
+                          -shave ${BORDER_SIZE} \
+                          -bordercolor $(eval echo $BorderColour) -border $BORDER_SIZE \
                           -strip \
                           "$OUTPUT_FILE"
                         }
