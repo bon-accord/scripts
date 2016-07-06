@@ -158,14 +158,15 @@ fi | grep -v ^Computers # Filter out the record for the OU itself
 if [[ $USER_REPORT = "Yes" ]]; then
    BASE="dc=example,dc=com"
    #ATTRIBUTE_LIST="cn name whenCreated whenChanged lastLogon logonCount operatingSystem dNSHostName lastLogonTimestamp"
-   ATTRIBUTE_LIST="dn cn sn givenName whenCreated whenChanged memberOf badPwdCount badPasswordTime lastLogon pwdLastSet accountExpires logonCount"
-   echo "CommonName;Surname;GivenName;DistingNameOU;WhenCreated;WhenChanged;badPwdCount;badPasswordTime;lastLogon;pwdLastSet;accountExpires;logonCount;MemberOf"
+   ATTRIBUTE_LIST="sAMAccountName dn cn sn givenName whenCreated whenChanged memberOf badPwdCount badPasswordTime lastLogon pwdLastSet accountExpires logonCount"
+   echo "sAMAccountName;CommonName;Surname;GivenName;DistingNameOU;WhenCreated;WhenChanged;badPwdCount;badPasswordTime;lastLogon;pwdLastSet;accountExpires;logonCount;MemberOf"
    #$LDAP_COMMAND -b "$BASE" $ATTRIBUTE_LIST |
    $LDAP_COMMAND -b "$BASE" "objectClass=user" $ATTRIBUTE_LIST |
     while read line
      do
        Attribute=$(echo $line | awk -F':' '{print $1}')
        if [[ -n $Attribute ]]; then
+          [[ $Attribute = "sAMAccountName" ]] &&     sama=$(echo $line | awk -F':' '{print $2}')
           [[ $Attribute = "dn" ]] &&                 dn_n=$(echo $line | awk -F':' '{print $2}')
           [[ $Attribute = "cn" ]] &&                 cn_n=$(echo $line | awk -F':' '{print $2}')
           [[ $Attribute = "sn" ]] &&                 sn_n=$(echo $line | awk -F':' '{print $2}')
@@ -181,6 +182,7 @@ if [[ $USER_REPORT = "Yes" ]]; then
           [[ $Attribute = "logonCount" ]] &&         logc=$(echo $line | awk -F':' '{print $2}')
        # If line is blank, assume end of record and print all data on one line
        elif [[ -z $Attribute ]]; then
+          [[ -n $sama ]] && echo -n $sama";" || echo -n ";"
           [[ -n $cn_n ]] && echo -n $cn_n";" || echo -n ";"
           [[ -n $sn_n ]] && echo -n $sn_n";" || echo -n ";"
           [[ -n $givN ]] && echo -n $givN";" || echo -n ";"
@@ -197,7 +199,7 @@ if [[ $USER_REPORT = "Yes" ]]; then
           [[ -n $memb ]] && echo -n $memb";" || echo -n ";"
           echo ""
        # Unset all variables before processing a new record
-          unset cn_n sn_n givN dn_n whcr whch bpwc bpwt lasl pwdl acce logc memb
+          unset sama cn_n sn_n givN dn_n whcr whch bpwc bpwt lasl pwdl acce logc memb
        fi
      done
 fi
