@@ -1,0 +1,44 @@
+#!/bin/bash
+
+[[ -f /etc/bashrc ]] && . /etc/bashrc
+
+# Report all existing ssh-agent processes
+function func_list_agents {
+                           echo ""
+                           if [[ -n $(ps -ef | grep ssh-agent | grep -v grep) ]]; then
+                              echo "Existing ssh-agent Processes:"
+                              echo "-----------------------------"
+                              ps -o user,pid,start_time,command -C ssh-agent
+                              echo ""
+                           fi
+                          }
+
+func_list_agents
+
+# Start ssh-agent if required
+
+echo "Setting up ssh-agent:"
+echo "---------------------"
+
+ssh-add -l &>/dev/null 				# Check to see if any existing agent holds any fingerprints/identities
+if [ "$?" == 2 ]; then				# If not, try and load agent config from a file
+   echo "Unable to contact ssh-agent to confirm any identities already added... "
+   test -r ~/.ssh-agent && eval "$(< ~/.ssh-agent)" > /dev/null
+   ssh-add -l &>/dev/null			# Now see if identities have been added
+   if [ "$?" == 0 ]; then
+      echo "Agent exists & identity now successfully added (using existing agent config settings)."A
+      echo ""
+   elif [[ "$?" == 2 || "$?" == 1 ]]; then	# If not, start a new agent
+      echo "Still no existing agents with identities found so:"
+      echo "    - killing old agents"
+      echo "    - start a new agent"
+      pkill -9 ssh-agent 			# Kill old agents first
+      (umask 066; ssh-agent -t 7200 > ~/.ssh-agent)	# Start an agent with max identity lifetime of 2 hours
+      eval "$(< ~/.ssh-agent)" > /dev/null
+      ssh-add					# Add all identities to the agent
+      echo -n "Private key identity added:"
+      ssh-add -l 
+      func_list_agents
+      echo ""
+   fi
+fi
